@@ -1,21 +1,24 @@
 import { ControlBar } from "@livekit/components-react";
-import { LogOut, StickyNote, MessageSquare } from "lucide-react";
+import { LogOut, MessageSquare, PenTool, Settings } from "lucide-react";
 import { useSyncRoomContext } from "../contexts/SyncRoomContext";
+import { ReactionButton } from "./ReactionButton";
+import { HandRaiseButton } from "./HandRaiseButton";
+import { RecordButton } from "./RecordButton";
 
 interface BottomControllerProps {
-  showShareNote: React.Dispatch<React.SetStateAction<boolean>>;
   showChat: React.Dispatch<React.SetStateAction<boolean>>;
+  showWhiteboard: () => void;
+  showSettings: () => void;
 }
 
 export function BottomController({
-  showShareNote,
   showChat,
+  showWhiteboard,
+  showSettings
 }: BottomControllerProps) {
   const { userName } = useSyncRoomContext();
 
-  const handleShareNote = () => {
-    showShareNote((prev) => !prev);
-  };
+
 
   const handleChatToggle = () => {
     showChat((prev) => !prev);
@@ -31,23 +34,36 @@ export function BottomController({
           controls={{
             microphone: true,
             camera: true,
-            screenShare: false,
+            screenShare: true,
             leave: false,
           }}
         />
         <div className="text-right flex gap-2 items-center">
+          <HandRaiseButton />
+          <RecordButton />
+          <HandRaiseButton />
+          <ReactionButton />
+          <button
+            className="w-8 h-8 flex items-center justify-center p-0 bg-transparent border-none hover:bg-gray-200 rounded"
+            onClick={showSettings}
+            title="Settings"
+          >
+            <Settings className="w-5 h-5 text-gray-700" />
+          </button>
+          <button
+            className="w-8 h-8 flex items-center justify-center p-0 bg-transparent border-none hover:bg-gray-200 rounded"
+            onClick={showWhiteboard}
+            title="Toggle Whiteboard"
+          >
+            <PenTool className="w-5 h-5 text-gray-700" />
+          </button>
           <button
             className="w-8 h-8 flex items-center justify-center p-0 bg-transparent border-none hover:bg-gray-200 rounded"
             onClick={handleChatToggle}
           >
             <MessageSquare className="w-5 h-5 text-gray-700" />
           </button>
-          <button
-            className="w-8 h-8 flex items-center justify-center p-0 bg-transparent border-none hover:bg-gray-200 rounded"
-            onClick={handleShareNote}
-          >
-            <StickyNote className="w-5 h-5 text-gray-700" />
-          </button>
+
           <button
             className="w-8 h-8 flex items-center justify-center p-0 bg-transparent border-none hover:bg-red-100 rounded"
             onClick={() => {

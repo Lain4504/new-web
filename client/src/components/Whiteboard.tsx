@@ -14,7 +14,7 @@ import { useSyncRoomContext } from "../contexts/SyncRoomContext";
 import "tldraw/tldraw.css";
 import "../styles/tldraw-custom.css";
 
-const WORKER_URL = import.meta.env.VITE_HOST_URL + "/w";
+const WORKER_URL = import.meta.env.VITE_SYNC_SERVER_URL;
 
 export function Whiteboard() {
   const { roomId, userId, userName, userColor } = useSyncRoomContext();

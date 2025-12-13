@@ -1,6 +1,6 @@
 import { Room, VideoPresets } from "livekit-client";
 
-const serverUrl = import.meta.env.VITE_HOST_URL;
+const serverUrl = import.meta.env.VITE_AUTH_SERVER_URL;
 const liveKitHostUrl = import.meta.env.VITE_LIVEKIT_URL;
 
 export class LiveKitService {
@@ -23,7 +23,7 @@ export class LiveKitService {
   ): Promise<void> {
     try {
       const res = await fetch(
-        `${serverUrl}/livekit/token?room=${encodeURIComponent(
+        `${serverUrl}/token?room=${encodeURIComponent(
           roomId
         )}&identity=${encodeURIComponent(userId)}&name=${encodeURIComponent(
           userName
@@ -43,5 +43,20 @@ export class LiveKitService {
 
   getRoom(): Room {
     return this.room;
+  }
+
+  async sendReaction(emoji: string) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(JSON.stringify({ type: "reaction", emoji }));
+    await this.room.localParticipant.publishData(data, {
+      reliable: false,
+      topic: "reaction",
+    });
+  }
+
+  async setHandRaised(raised: boolean) {
+    await this.room.localParticipant.setMetadata(
+      JSON.stringify({ handRaised: raised })
+    );
   }
 }

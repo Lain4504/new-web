@@ -5,27 +5,13 @@ services:
       dockerfile: Dockerfile
       args:
         NODE_ENV: production
-        VITE_HOST_URL: ${VITE_HOST_URL}
-        VITE_LIVEKIT_URL: ${VITE_LIVEKIT_URL}
-    networks:
-      - sync-canvas-network
 
-  nginx:
-    image: nginx:alpine
-    container_name: nginx-proxy
-    restart: unless-stopped
+        VITE_LIVEKIT_URL: ${VITE_LIVEKIT_URL}
+        VITE_SYNC_SERVER_URL: ${VITE_SYNC_SERVER_URL:-http://localhost:5858}
+        VITE_AUTH_SERVER_URL: ${VITE_AUTH_SERVER_URL:-http://localhost:3001}
+        VITE_ETHERPAD_URL: ${VITE_ETHERPAD_URL:-http://localhost:9001}
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-      - ./nginx/routes.conf:/etc/nginx/snippets/routes.conf
-      - ./nginx/certs:/etc/nginx/certs
-    depends_on:
-      - web-client
-      - etherpad
-      - tldraw-sync-server
-      - livekit-auth-server
+      - "8080:8080"
     networks:
       - sync-canvas-network
 
@@ -36,8 +22,8 @@ services:
       args:
         NODE_ENV: production
     restart: unless-stopped
-    # ports:
-    #   - "3001:3001"
+    ports:
+      - "3001:3001"
     environment:
       NODE_ENV: production
       LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
@@ -53,8 +39,8 @@ services:
       args:
         NODE_ENV: production
     restart: unless-stopped
-    # ports:
-    #   - "5858:5858"
+    ports:
+      - "5858:5858"
     environment:
       NODE_ENV: production
     networks:
@@ -86,8 +72,8 @@ services:
       SOFFICE: ${DOCKER_COMPOSE_APP_SOFFICE:-null}
       TRUST_PROXY: ${DOCKER_COMPOSE_APP_TRUST_PROXY:-true}
     restart: always
-    # ports:
-    #   - "${DOCKER_COMPOSE_APP_PORT_PUBLISHED:-9001}:${DOCKER_COMPOSE_APP_PORT_TARGET:-9001}"
+    ports:
+      - "${DOCKER_COMPOSE_APP_PORT_PUBLISHED:-9001}:${DOCKER_COMPOSE_APP_PORT_TARGET:-9001}"
     networks:
       - sync-canvas-network
 
