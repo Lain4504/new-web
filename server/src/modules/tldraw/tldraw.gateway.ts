@@ -1,38 +1,54 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { TldrawService } from './tldraw.service';
 import { WebSocketServer, WebSocket } from 'ws';
 import type { RawData } from 'ws';
 import { parse } from 'url';
+import type { Server } from 'http';
 
 @Injectable()
-export class TldrawGateway implements OnModuleInit {
+export class TldrawGateway {
     private readonly logger = new Logger(TldrawGateway.name);
     private wss: WebSocketServer;
 
     constructor(private readonly tldrawService: TldrawService) { }
 
-    onModuleInit() {
+    /**
+     * Initialize WebSocket server on the same HTTP server instance
+     * This allows WebSocket to work on the same port as HTTP (required for cloud deployment)
+     */
+    initializeWebSocket(httpServer: Server) {
         try {
-            // Create WebSocket server on port 5858 (same as old tldraw-sync-server)
-            const port = parseInt(process.env.TLDRAW_WS_PORT || '5858');
-            this.wss = new WebSocketServer({ port });
+            // Create WebSocket server attached to HTTP server
+            // Don't set 'path' option to allow flexible path matching
+            this.wss = new WebSocketServer({
+                server: httpServer,
+                // Removed path restriction to allow /tldraw/connect/:roomId pattern
+            });
 
-            this.logger.log(`✅ TLDraw WebSocket server listening on ws://localhost:${port}`);
-            this.logger.log(`   Connect at: ws://localhost:${port}/connect/:roomId?sessionId=xxx`);
+            this.logger.log(`✅ TLDraw WebSocket server initialized`);
+            this.logger.log(`   Path: /tldraw/connect/:roomId?sessionId=xxx`);
         } catch (error) {
             this.logger.error(`❌ Failed to start WebSocket server: ${error.message}`);
             throw error;
         }
 
         this.wss.on('connection', async (ws: WebSocket, req) => {
-            this.logger.log('Client attempting to connect');
+            this.logger.log(`📥 WebSocket connection attempt: ${req.url}`);
 
             // Parse URL to get roomId and sessionId
             const parsedUrl = parse(req.url || '', true);
             const pathParts = parsedUrl.pathname?.split('/').filter(Boolean) || [];
 
-            // Expected URL: /connect/:roomId?sessionId=xxx
-            const roomId = pathParts[1]; // pathParts[0] is 'connect'
+            // Validate path starts with /tldraw/connect
+            if (pathParts[0] !== 'tldraw' || pathParts[1] !== 'connect') {
+                this.logger.warn(`❌ Invalid path: ${req.url} - Expected /tldraw/connect/:roomId`);
+                ws.close(1008, 'Invalid path');
+                return;
+            }
+
+            // Expected URL: /tldraw/connect/:roomId?sessionId=xxx
+            // pathParts: ['tldraw', 'connect', 'roomId']
+            const roomId = pathParts[2]; // Get roomId from path
             const sessionId = parsedUrl.query.sessionId as string;
 
             if (!roomId || !sessionId) {

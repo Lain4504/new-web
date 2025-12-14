@@ -16,6 +16,16 @@ import "../styles/tldraw-custom.css";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3000";
 
+// Convert HTTP URL to WebSocket URL
+const getWebSocketUrl = (serverUrl: string) => {
+  const url = new URL(serverUrl);
+  // Replace http/https with ws/wss
+  url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+  return url.toString().replace(/\/$/, ""); // Remove trailing slash
+};
+
+const WS_BASE_URL = getWebSocketUrl(SERVER_URL);
+
 export function Whiteboard() {
   const { roomId, userId, userName, userColor } = useSyncRoomContext();
   const [userPreferences] = useState<TLUserPreferences>({
@@ -27,7 +37,7 @@ export function Whiteboard() {
   // Create a store connected to multiplayer.
   const store = useSync({
     // We need to know the websocket's URI...
-    uri: `ws://localhost:5858/connect/${roomId}`,
+    uri: `${WS_BASE_URL}/tldraw/connect/${roomId}`,
     // ...and how to handle static assets like images & videos
     assets: multiplayerAssets,
     userInfo: userPreferences,
