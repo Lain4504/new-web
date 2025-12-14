@@ -129,6 +129,11 @@ function Content() {
     setShowWhiteboard(false); // Close whiteboard when focusing a track
   }, []);
 
+  const handleUnfocus = useCallback(() => {
+    setFocusTrack(null);
+    setShowWhiteboard(false);
+  }, []);
+
   const handleCloseChat = useCallback(() => {
     setShowChat(false);
   }, []);
@@ -156,6 +161,26 @@ function Content() {
       room.off(RoomEvent.DataReceived, handleData);
     };
   }, [room, addReaction]);
+
+  // Auto unfocus when focused track is stopped (e.g., screen share ends)
+  useEffect(() => {
+    if (!focusTrack) return;
+
+    // Listen for track unpublished event (when track is removed, not just muted)
+    const handleTrackUnpublished = (publication: any) => {
+      // Check if the unpublished track is the one we're focusing on
+      if (publication.trackSid === focusTrack.publication?.trackSid) {
+        console.log('Focused track was unpublished, unfocusing...');
+        setFocusTrack(null);
+      }
+    };
+
+    focusTrack.participant.on('trackUnpublished', handleTrackUnpublished);
+
+    return () => {
+      focusTrack.participant.off('trackUnpublished', handleTrackUnpublished);
+    };
+  }, [focusTrack]);
 
   return (
     <div className="flex flex-col h-screen relative">
@@ -235,7 +260,7 @@ function Content() {
                   {showWhiteboard ? (
                     <Whiteboard />
                   ) : (
-                    focusTrack && <FocusedTrackView trackRef={focusTrack} />
+                    focusTrack && <FocusedTrackView trackRef={focusTrack} onUnfocus={handleUnfocus} />
                   )}
                 </div>
                 {/* Filmstrip View at Bottom - Collapsible with Auto-Hide */}
