@@ -182,11 +182,6 @@ function Content() {
       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
 
       <div className="flex flex-1 overflow-hidden relative">
-        {/* Conference component for video/audio - Overlay on top */}
-        <div className="absolute inset-0 z-50 pointer-events-none">
-          <Conference onTrackClick={handleTrackClick} />
-        </div>
-
         <div className="flex w-full h-full">
           {/* Left pane: Chat/Polls */}
           <div
@@ -202,15 +197,26 @@ function Content() {
             </div>
           </div>
 
-          {/* Right pane: Whiteboard, Focused Track, or Empty/Grid */}
-          <div className="flex-1 min-w-0 h-full overflow-hidden bg-gray-900 relative z-0">
-            {showWhiteboard ? (
-              <Whiteboard />
-            ) : focusTrack ? (
-              <FocusedTrackView trackRef={focusTrack} />
+          {/* Right pane: Main Content */}
+          <div className="flex-1 min-w-0 h-full overflow-hidden bg-gray-900 relative z-0 flex flex-col">
+            {(showWhiteboard || focusTrack) ? (
+              <>
+                <div className="flex-1 relative min-h-0">
+                  {showWhiteboard ? (
+                    <Whiteboard />
+                  ) : (
+                    focusTrack && <FocusedTrackView trackRef={focusTrack} />
+                  )}
+                </div>
+                {/* Filmstrip View at Bottom */}
+                <div className="flex-shrink-0 h-[140px] border-t border-gray-800 bg-gray-900 z-10 w-full relative">
+                  <Conference onTrackClick={handleTrackClick} layout="filmstrip" />
+                </div>
+              </>
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-white">
-                <p>Select a participant or open Whiteboard</p>
+              // Grid View
+              <div className="flex-1 relative min-h-0 w-full">
+                <Conference onTrackClick={handleTrackClick} layout="grid" />
               </div>
             )}
           </div>
@@ -223,6 +229,6 @@ function Content() {
           showSettings={handleToggleSettings}
         />
       </div>
-    </div>
+    </div >
   );
 }
