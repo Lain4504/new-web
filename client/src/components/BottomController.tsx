@@ -27,7 +27,7 @@ export function BottomController({
   return (
     <div className="fixed bottom-0 left-0 w-full p-2 bg-gray-100 border-t border-gray-300">
       <div className="flex justify-between items-center">
-        <div className="ml-4 text-gray-700 font-bold">{userName}</div>
+        <div className="ml-4 text-gray-700 font-bold hidden sm:block">{userName}</div>
         <ControlBar
           className="h-10 p-0 m-0"
           variation="minimal"
@@ -40,17 +40,19 @@ export function BottomController({
         />
         <div className="text-right flex gap-2 items-center">
           <HandRaiseButton />
-          <RecordButton />
+          <div className="hidden sm:block">
+            <RecordButton />
+          </div>
           <ReactionButton />
           <button
-            className="w-8 h-8 flex items-center justify-center p-0 bg-transparent border-none hover:bg-gray-200 rounded"
+            className="w-8 h-8 hidden sm:flex items-center justify-center p-0 bg-transparent border-none hover:bg-gray-200 rounded"
             onClick={showSettings}
             title="Settings"
           >
             <Settings className="w-5 h-5 text-gray-700" />
           </button>
           <button
-            className="w-8 h-8 flex items-center justify-center p-0 bg-transparent border-none hover:bg-gray-200 rounded"
+            className="w-8 h-8 hidden sm:flex items-center justify-center p-0 bg-transparent border-none hover:bg-gray-200 rounded"
             onClick={showWhiteboard}
             title="Toggle Whiteboard"
           >

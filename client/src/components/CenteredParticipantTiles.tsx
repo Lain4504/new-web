@@ -41,7 +41,7 @@ export function CenteredParticipantTiles({
             return (
               <div
                 key={trackRef.publication?.trackSid || trackRef.participant.sid}
-                className="w-28 h-28 flex-shrink-0 rounded-full shadow-lg shadow-gray-500/50 cursor-pointer hover:scale-105 transition-transform relative group"
+                className="w-20 h-20 sm:w-28 sm:h-28 flex-shrink-0 rounded-full shadow-lg shadow-gray-500/50 cursor-pointer hover:scale-105 transition-transform relative group"
                 onClick={() => onTrackClick?.(trackRef)}
               >
                 {/* Speaking Indicator - Pulsing Ring */}

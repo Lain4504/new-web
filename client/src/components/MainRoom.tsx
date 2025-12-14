@@ -1,5 +1,4 @@
 import { useCallback, useState, useEffect } from "react";
-import Split from "react-split";
 import { BottomController } from "./BottomController";
 import { Whiteboard } from "./Whiteboard";
 import { FocusedTrackView } from "./FocusedTrackView";
@@ -18,6 +17,7 @@ import { useChatSendJoinMessage } from "../hooks/useChatSendJoinMessage";
 import { useHandRaiseNotifications } from "../hooks/useHandRaiseNotifications";
 import { HandRaiseToast } from "./HandRaiseToast";
 import { ReactionProvider, useReaction } from "../contexts/ReactionContext";
+import { PollsProvider } from "../contexts/PollsContext";
 
 interface MainRoomProps {
   roomId: string;
@@ -60,7 +60,9 @@ export function MainRoom({ roomId, userName }: MainRoomProps) {
       >
         <RecordingProvider>
           <ReactionProvider>
-            <Content />
+            <PollsProvider>
+              <Content />
+            </PollsProvider>
           </ReactionProvider>
         </RecordingProvider>
       </SyncRoomProvider>
@@ -185,26 +187,23 @@ function Content() {
           <Conference onTrackClick={handleTrackClick} />
         </div>
 
-        <Split
-          className="split"
-          sizes={showLeftPane ? [30, 70] : [0, 100]}
-          minSize={0}
-          gutterSize={showLeftPane ? 8 : 0}
-          direction="horizontal"
-          style={{ display: "flex", width: "100%", height: "100%" }}
-        >
-          {/* Left pane: Chat */}
+        <div className="flex w-full h-full">
+          {/* Left pane: Chat/Polls */}
           <div
-            className={`h-full overflow-hidden transition-all duration-300 ${showLeftPane ? "block" : "hidden"
+            className={`bg-white border-r border-gray-200 transition-all duration-300 ease-in-out z-[60] ${showLeftPane
+              ? "absolute inset-0 w-full sm:relative sm:w-[360px] flex-shrink-0"
+              : "w-0 overflow-hidden relative"
               }`}
           >
-            {showChat && (
-              <ChatRoom isOpen={showChat} onClose={handleCloseChat} />
-            )}
+            <div className="h-full w-full sm:w-[360px]">
+              {showChat && (
+                <ChatRoom isOpen={showChat} onClose={handleCloseChat} />
+              )}
+            </div>
           </div>
 
           {/* Right pane: Whiteboard, Focused Track, or Empty/Grid */}
-          <div className="flex-1 min-w-0 h-full overflow-hidden bg-gray-900 relative">
+          <div className="flex-1 min-w-0 h-full overflow-hidden bg-gray-900 relative z-0">
             {showWhiteboard ? (
               <Whiteboard />
             ) : focusTrack ? (
@@ -215,7 +214,7 @@ function Content() {
               </div>
             )}
           </div>
-        </Split>
+        </div>
       </div>
       <div className="min-h-[50px]">
         <BottomController
