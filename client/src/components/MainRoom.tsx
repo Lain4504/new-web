@@ -15,6 +15,9 @@ import "@livekit/components-styles";
 import { ChatRoom } from "./ChatRoom";
 import { generateUserId, getColorFromIdentity } from "../utils/color";
 import { useChatSendJoinMessage } from "../hooks/useChatSendJoinMessage";
+import { useHandRaiseNotifications } from "../hooks/useHandRaiseNotifications";
+import { HandRaiseToast } from "./HandRaiseToast";
+import { ReactionProvider, useReaction } from "../contexts/ReactionContext";
 
 interface MainRoomProps {
   roomId: string;
@@ -56,7 +59,9 @@ export function MainRoom({ roomId, userName }: MainRoomProps) {
         }}
       >
         <RecordingProvider>
-          <Content />
+          <ReactionProvider>
+            <Content />
+          </ReactionProvider>
         </RecordingProvider>
       </SyncRoomProvider>
     </RoomContext.Provider>
@@ -68,6 +73,8 @@ function Content() {
   const [showWhiteboard, setShowWhiteboard] = useState(false);
   const [focusTrack, setFocusTrack] = useState<TrackReference | null>(null);
   const { isRecording } = useRecording();
+  const handRaiseToasts = useHandRaiseNotifications();
+  const { reactions, addReaction } = useReaction();
 
   useChatSendJoinMessage();
 
@@ -95,25 +102,18 @@ function Content() {
   }, []);
 
   const showLeftPane = showChat;
-
-  const [reactions, setReactions] = useState<{ emoji: string; id: number; left: number }[]>([]);
   const room = useRoomContext();
 
+  // Handle reactions from other participants
   useEffect(() => {
     const handleData = (payload: Uint8Array, _participant: any, kind: any) => {
-      if (kind === DataPacket_Kind.RELIABLE) return; // we used unreliable for reactions
+      if (kind === DataPacket_Kind.RELIABLE) return;
       const decoder = new TextDecoder();
       const str = decoder.decode(payload);
       try {
         const data = JSON.parse(str);
         if (data.type === "reaction") {
-          setReactions((prev) => [
-            ...prev,
-            { emoji: data.emoji, id: Date.now(), left: Math.random() * 80 + 10 },
-          ]);
-          setTimeout(() => {
-            setReactions((prev) => prev.slice(1));
-          }, 4000);
+          addReaction(data.emoji);
         }
       } catch (e) {
         // ignore
@@ -123,7 +123,7 @@ function Content() {
     return () => {
       room.off(RoomEvent.DataReceived, handleData);
     };
-  }, [room]);
+  }, [room, addReaction]);
 
   return (
     <div className="flex flex-col h-screen relative">
@@ -162,6 +162,19 @@ function Content() {
             50% { opacity: 0.5; }
           }
         `}</style>
+      </div>
+
+      {/* Hand Raise Toast Notifications */}
+      <div className="fixed top-4 right-4 z-[200] flex flex-col gap-2 pointer-events-auto">
+        {handRaiseToasts.map((toast) => (
+          <HandRaiseToast
+            key={toast.id}
+            name={toast.name}
+            onClose={() => {
+              // Toast will auto-remove via timeout
+            }}
+          />
+        ))}
       </div>
 
       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />

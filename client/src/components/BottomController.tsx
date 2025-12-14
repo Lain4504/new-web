@@ -41,7 +41,6 @@ export function BottomController({
         <div className="text-right flex gap-2 items-center">
           <HandRaiseButton />
           <RecordButton />
-          <HandRaiseButton />
           <ReactionButton />
           <button
             className="w-8 h-8 flex items-center justify-center p-0 bg-transparent border-none hover:bg-gray-200 rounded"

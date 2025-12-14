@@ -1,13 +1,19 @@
 import { Smile } from "lucide-react";
 import { useRoomContext } from "@livekit/components-react";
 import { useState } from "react";
+import { useReaction } from "../contexts/ReactionContext";
 
 
 export function ReactionButton() {
     const room = useRoomContext();
+    const { addReaction } = useReaction();
     const [isOpen, setIsOpen] = useState(false);
 
     const sendReaction = async (emoji: string) => {
+        // Add reaction locally for sender
+        addReaction(emoji);
+
+        // Send to other participants
         const encoder = new TextEncoder();
         const data = encoder.encode(JSON.stringify({ type: "reaction", emoji }));
         await room.localParticipant.publishData(data, {
