@@ -28,7 +28,7 @@ export function ParticipantLayout({ tracks, onTrackClick, layoutMode }: Particip
                     layoutMode === "grid"
                         ? `relative overflow-hidden rounded-xl bg-gray-800 shadow-md group ${isSpeaking ? "ring-4 ring-green-500" : "border border-gray-700/50"
                         }`
-                        : `flex-shrink-0 w-48 h-32 relative rounded-lg overflow-hidden bg-gray-800 shadow-sm group ${isSpeaking ? "ring-2 ring-green-500" : "ring-1 ring-gray-700/50"
+                        : `flex-shrink-0 w-40 h-24 relative rounded-lg overflow-hidden bg-gray-800 shadow-sm group ${isSpeaking ? "ring-2 ring-green-500" : "ring-1 ring-gray-700/50"
                         }`
                 }
                 onClick={() => onTrackClick?.(trackRef)}

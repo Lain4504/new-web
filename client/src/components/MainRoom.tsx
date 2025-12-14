@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import { BottomController } from "./BottomController";
 import { Whiteboard } from "./Whiteboard";
 import { FocusedTrackView } from "./FocusedTrackView";
@@ -77,6 +77,36 @@ function Content() {
   const { isRecording } = useRecording();
   const handRaiseToasts = useHandRaiseNotifications();
   const { reactions, addReaction } = useReaction();
+
+  // Filmstrip state management
+  const [isFilmstripLocked, setIsFilmstripLocked] = useState(false);
+  const [isFilmstripHovered, setIsFilmstripHovered] = useState(false);
+  const [showFilmstripContent, setShowFilmstripContent] = useState(true);
+  const filmstripTimeoutRef = useRef<number | undefined>(undefined);
+
+  // Auto-hide filmstrip after 3 seconds
+  useEffect(() => {
+    if (isFilmstripLocked || isFilmstripHovered) {
+      // Clear timeout if locked or hovered
+      if (filmstripTimeoutRef.current) {
+        clearTimeout(filmstripTimeoutRef.current);
+      }
+      setShowFilmstripContent(true);
+    } else {
+      // Set timeout to hide after 3 seconds
+      filmstripTimeoutRef.current = setTimeout(() => {
+        setShowFilmstripContent(false);
+      }, 3000);
+    }
+
+    return () => {
+      if (filmstripTimeoutRef.current) {
+        clearTimeout(filmstripTimeoutRef.current);
+      }
+    };
+  }, [isFilmstripLocked, isFilmstripHovered]);
+
+  const shouldShowFilmstrip = isFilmstripLocked || isFilmstripHovered || showFilmstripContent;
 
   useChatSendJoinMessage();
 
@@ -208,9 +238,41 @@ function Content() {
                     focusTrack && <FocusedTrackView trackRef={focusTrack} />
                   )}
                 </div>
-                {/* Filmstrip View at Bottom */}
-                <div className="flex-shrink-0 h-[140px] border-t border-gray-800 bg-gray-900 z-10 w-full relative">
-                  <Conference onTrackClick={handleTrackClick} layout="filmstrip" />
+                {/* Filmstrip View at Bottom - Collapsible with Auto-Hide */}
+                <div
+                  className={`flex-shrink-0 border-t border-gray-800 bg-gray-900 z-10 w-full relative transition-all duration-300 ease-in-out ${shouldShowFilmstrip ? 'h-[130px]' : 'h-10'
+                    }`}
+                  onMouseEnter={() => setIsFilmstripHovered(true)}
+                  onMouseLeave={() => setIsFilmstripHovered(false)}
+                >
+                  {/* Lock/Unlock Toggle Button */}
+                  <button
+                    onClick={() => setIsFilmstripLocked(!isFilmstripLocked)}
+                    className="absolute top-2 right-2 z-20 bg-gray-800/80 hover:bg-gray-700/80 text-white rounded-full p-1.5 shadow-md backdrop-blur-sm transition-colors"
+                    title={isFilmstripLocked ? "Unlock to auto-hide" : "Lock to keep visible"}
+                  >
+                    {isFilmstripLocked ? (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                      </svg>
+                    )}
+                  </button>
+
+                  {/* Filmstrip Content */}
+                  {shouldShowFilmstrip && (
+                    <Conference onTrackClick={handleTrackClick} layout="filmstrip" />
+                  )}
+
+                  {/* Collapsed State Hint */}
+                  {!shouldShowFilmstrip && (
+                    <div className="flex items-center justify-center h-full text-gray-500 text-sm">
+                      Hover to show participants
+                    </div>
+                  )}
                 </div>
               </>
             ) : (
