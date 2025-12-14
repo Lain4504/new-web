@@ -14,7 +14,7 @@ import { useSyncRoomContext } from "../contexts/SyncRoomContext";
 import "tldraw/tldraw.css";
 import "../styles/tldraw-custom.css";
 
-const WORKER_URL = import.meta.env.VITE_SYNC_SERVER_URL;
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3000";
 
 export function Whiteboard() {
   const { roomId, userId, userName, userColor } = useSyncRoomContext();
@@ -27,7 +27,7 @@ export function Whiteboard() {
   // Create a store connected to multiplayer.
   const store = useSync({
     // We need to know the websocket's URI...
-    uri: `${WORKER_URL}/connect/${roomId}`,
+    uri: `ws://localhost:5858/connect/${roomId}`,
     // ...and how to handle static assets like images & videos
     assets: multiplayerAssets,
     userInfo: userPreferences,
@@ -63,7 +63,7 @@ const multiplayerAssets: TLAssetStore = {
     const id = uniqueId();
 
     const objectName = `${id}-${file.name}`;
-    const url = `${WORKER_URL}/uploads/${encodeURIComponent(objectName)}`;
+    const url = `${SERVER_URL}/tldraw/uploads/${encodeURIComponent(objectName)}`;
 
     const response = await fetch(url, {
       method: "PUT",
@@ -105,7 +105,7 @@ async function unfurlBookmarkUrl({
 
   try {
     const response = await fetch(
-      `${WORKER_URL}/unfurl?url=${encodeURIComponent(url)}`
+      `${SERVER_URL}/tldraw/unfurl?url=${encodeURIComponent(url)}`
     );
     const data = await response.json();
 

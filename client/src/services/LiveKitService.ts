@@ -1,6 +1,6 @@
 import { Room, VideoPresets } from "livekit-client";
 
-const serverUrl = import.meta.env.VITE_AUTH_SERVER_URL;
+const serverUrl = import.meta.env.VITE_SERVER_URL || "http://localhost:3000";
 const liveKitHostUrl = import.meta.env.VITE_LIVEKIT_URL;
 
 export class LiveKitService {
@@ -23,7 +23,7 @@ export class LiveKitService {
   ): Promise<void> {
     try {
       const res = await fetch(
-        `${serverUrl}/token?room=${encodeURIComponent(
+        `${serverUrl}/livekit/token?room=${encodeURIComponent(
           roomId
         )}&identity=${encodeURIComponent(userId)}&name=${encodeURIComponent(
           userName

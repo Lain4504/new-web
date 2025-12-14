@@ -1,33 +1,14 @@
 import { Circle, StopCircle } from "lucide-react";
-import { useState } from "react";
-import { useRoomContext } from "@livekit/components-react";
+import { useRecording } from "../contexts/RecordingContext";
 
 export function RecordButton() {
-    const room = useRoomContext();
-    const [isRecording, setIsRecording] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-
-    // Using import.meta.env for server URL, fallback to window.location
-    const serverUrl = import.meta.env.VITE_AUTH_SERVER_URL || "";
+    const { isRecording, startRecording, stopRecording, isLoading } = useRecording();
 
     const toggleRecording = async () => {
-        setIsLoading(true);
-        try {
-            const roomName = room.name;
-            if (!isRecording) {
-                // Start
-                await fetch(`${serverUrl}/rooms/${roomName}/recording/start`, { method: "POST" });
-                setIsRecording(true);
-            } else {
-                // Stop
-                await fetch(`${serverUrl}/rooms/${roomName}/recording/stop`, { method: "POST" });
-                setIsRecording(false);
-            }
-        } catch (e) {
-            console.error("Failed to toggle recording", e);
-            alert("Failed to toggle recording. Ensure server is configured.");
-        } finally {
-            setIsLoading(false);
+        if (isRecording) {
+            await stopRecording();
+        } else {
+            await startRecording();
         }
     };
 

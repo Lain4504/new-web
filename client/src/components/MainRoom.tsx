@@ -10,6 +10,7 @@ import { RoomEvent, DataPacket_Kind } from "livekit-client";
 import { Conference } from "./Conference";
 import { LiveKitService } from "../services/LiveKitService";
 import { SyncRoomProvider } from "../contexts/SyncRoomContext";
+import { RecordingProvider, useRecording } from "../contexts/RecordingContext";
 import "@livekit/components-styles";
 import { ChatRoom } from "./ChatRoom";
 import { generateUserId, getColorFromIdentity } from "../utils/color";
@@ -54,7 +55,9 @@ export function MainRoom({ roomId, userName }: MainRoomProps) {
           color: userColor,
         }}
       >
-        <Content />
+        <RecordingProvider>
+          <Content />
+        </RecordingProvider>
       </SyncRoomProvider>
     </RoomContext.Provider>
   );
@@ -64,6 +67,7 @@ function Content() {
   const [showChat, setShowChat] = useState(false);
   const [showWhiteboard, setShowWhiteboard] = useState(false);
   const [focusTrack, setFocusTrack] = useState<TrackReference | null>(null);
+  const { isRecording } = useRecording();
 
   useChatSendJoinMessage();
 
@@ -123,6 +127,17 @@ function Content() {
 
   return (
     <div className="flex flex-col h-screen relative">
+      {/* Recording Border Indicator */}
+      {isRecording && (
+        <div
+          className="fixed inset-0 pointer-events-none z-[10000]"
+          style={{
+            border: '4px solid #ef4444',
+            animation: 'pulse-border 2s ease-in-out infinite',
+          }}
+        />
+      )}
+
       {/* Reaction Overlay */}
       <div className="absolute bottom-20 left-4 pointer-events-none z-[100]">
         {reactions.map((r) => (
@@ -141,6 +156,10 @@ function Content() {
           @keyframes floatUp {
             0% { transform: translateY(0); opacity: 1; }
             100% { transform: translateY(-300px); opacity: 0; }
+          }
+          @keyframes pulse-border {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
           }
         `}</style>
       </div>
